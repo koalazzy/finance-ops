@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>国内信用证测试</title>
+<style>
+body { font-family: -apple-system, "PingFang SC", sans-serif; max-width: 600px; margin: 0 auto; padding: 16px; }
+.card { background: #fff; border-radius: 10px; padding: 16px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.field { margin: 10px 0; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 4px; }
+.field input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; }
+.btn { width: 100%; padding: 12px; background: #1a3a5c; color: #fff; border: none; border-radius: 6px; font-size: 15px; }
+.num { text-align: right; font-family: monospace; }
+.red { color: #b91c1c; } .green { color: #0f766e; }
+.total-row td { border-top: 2px solid #1a3a5c; font-weight: 700; }
+</style>
+</head>
+<body>
+<h2>📜 国内信用证 — 测试版</h2>
+<div class="card">
+  <div class="field"><label>开证金额（万元）</label><input type="number" id="l_amount" value="500"></div>
+  <div class="field"><label>开证期限（月）</label><input type="number" id="l_months" value="6"></div>
+  <div class="field"><label>保证金比例 %</label><input type="number" id="l_margin" value="30"></div>
+  <div class="field"><label>福费廷贴现年利率 %</label><input type="number" id="l_forfeit" value="2.5" step="0.01"></div>
+  <div class="field"><label>开证手续费率 %</label><input type="number" id="l_issuing" value="0.1" step="0.01"></div>
+  <div class="field"><label>承兑费月率 %</label><input type="number" id="l_accept" value="0.06" step="0.01"></div>
+  <div class="field"><label>保证金存款年利率 %</label><input type="number" id="l_deposit" value="0.35" step="0.01"></div>
+  <div class="field"><label>流贷对比年利率 %</label><input type="number" id="l_loan" value="3.5" step="0.01"></div>
+  <button class="btn" onclick="calc()">开始计算</button>
+</div>
+<div id="result"></div>
+
+<script>
+// Inline calculator
+const F = {
+  round2(v) { return Math.round(v * 100) / 100; },
+  round4(v) { return Math.round(v * 10000) / 10000; },
+
+  letterOfCreditV2(amount, months, opts = {}) {
+    const marginRatio = opts.marginRatio ?? 0.3;
+    const marginDepositRate = opts.marginDepositRate ?? 0.0035;
+    const forfeitingRate = opts.forfeitingRate ?? 0.025;
+    const issuingFeeRate = opts.issuingFeeRate ?? 0.001;
+    const acceptanceFeeMonthly = opts.acceptanceFeeMonthly ?? 0.0006;
+    const margin = this.round2(amount * marginRatio);
+    const exposure = this.round2(amount - margin);
+    const issuingFee = this.round2(amount * issuingFeeRate);
+    const acceptanceFee = this.round2(amount * acceptanceFeeMonthly * months);
+    const forfeitingInterest = this.round2(exposure * forfeitingRate * months / 12);
+    const marginDepositIncome = this.round2(margin * marginDepositRate * months / 12);
+    const totalCost = this.round2(forfeitingInterest + issuingFee + acceptanceFee - marginDepositIncome);
+    const costRate = this.round4(totalCost / exposure * 12 / months);
+    return { amount, months, margin, marginRatio, marginDepositRate, exposure,
+      detail: { forfeitingInterest, issuingFee, acceptanceFee, marginDepositIncome },
+      feeSubtotal: this.round2(forfeitingInterest + issuingFee + acceptanceFee),
+      totalCost, costRate };
+  },
+
+  lcVsLoanV2(amount, months, lcOpts = {}, loanAnnualRate = 0.035) {
+    const lc = this.letterOfCreditV2(amount, months, lcOpts);
+    const loanInterest = this.round2(amount * loanAnnualRate * months / 12);
+    const loanCostRate = this.round4(loanInterest / amount * 12 / months);
+    return {
+      lc: { totalCost: lc.totalCost, costRate: lc.costRate, detail: lc.detail,
+            margin: lc.margin, marginRatio: lc.marginRatio, exposure: lc.exposure,
+            months: lc.months, feeSubtotal: lc.feeSubtotal },
+      loan: { totalCost: loanInterest, costRate: loanCostRate },
+      difference: this.round2(lc.totalCost - loanInterest),
+      recommendation: lc.totalCost < loanInterest ? '国内信用证成本更低' : '流动资金贷款成本更低'
+    };
+  }
+};
+
+function fmt(n) { return n.toLocaleString('zh-CN', {minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function calc() {
+  const amount = parseFloat(document.getElementById('l_amount').value) * 10000;
+  const months = parseInt(document.getElementById('l_months').value);
+  const opts = {
+    marginRatio: parseFloat(document.getElementById('l_margin').value) / 100,
+    marginDepositRate: parseFloat(document.getElementById('l_deposit').value) / 100,
+    forfeitingRate: parseFloat(document.getElementById('l_forfeit').value) / 100,
+    issuingFeeRate: parseFloat(document.getElementById('l_issuing').value) / 100,
+    acceptanceFeeMonthly: parseFloat(document.getElementById('l_accept').value) / 100
+  };
+  const loanRate = parseFloat(document.getElementById('l_loan').value) / 100;
+
+  console.log('Input:', { amount, months, opts, loanRate });
+  const c = F.lcVsLoanV2(amount, months, opts, loanRate);
+  console.log('Result:', c);
+  const d = c.lc.detail;
+
+  document.getElementById('result').innerHTML = `
+    <div class="card">
+      <h3>融资结构</h3>
+      <table width="100%">
+        <tr><td>开证金额</td><td class="num">¥${fmt(c.lc.margin + c.lc.exposure)}</td></tr>
+        <tr><td>保证金</td><td class="num">¥${fmt(c.lc.margin)}</td></tr>
+        <tr><td>融资敞口</td><td class="num">¥${fmt(c.lc.exposure)}</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>成本明细</h3>
+      <table width="100%">
+        <tr><th>项目</th><th class="num">金额</th></tr>
+        <tr><td>① 福费廷贴现利息</td><td class="num red">¥${fmt(d.forfeitingInterest)}</td></tr>
+        <tr><td>② 开证手续费</td><td class="num red">¥${fmt(d.issuingFee)}</td></tr>
+        <tr><td>③ 承兑费</td><td class="num red">¥${fmt(d.acceptanceFee)}</td></tr>
+        <tr><td>费用小计</td><td class="num red">¥${fmt(c.lc.feeSubtotal)}</td></tr>
+        <tr><td>④ 保证金存款利息（抵减）</td><td class="num green">−¥${fmt(d.marginDepositIncome)}</td></tr>
+        <tr class="total-row"><td>融资总成本 = ①+②+③-④</td><td class="num">¥${fmt(c.lc.totalCost)}</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>关键指标</h3>
+      <p style="font-size:24px;text-align:center;color:#c9a94e">融资成本率 <strong>${(c.lc.costRate*100).toFixed(4)}%</strong></p>
+      <p style="text-align:center;color:#999;font-size:12px">= ¥${fmt(c.lc.totalCost)} ÷ ¥${fmt(c.lc.exposure)} ÷ ${c.lc.months} × 12</p>
+    </div>
+    <div class="card">
+      <h3>vs 流动资金贷款</h3>
+      <table width="100%">
+        <tr><th></th><th>国内信用证</th><th>流动资金贷款</th></tr>
+        <tr><td>总成本</td><td class="num">¥${fmt(c.lc.totalCost)}</td><td class="num">¥${fmt(c.loan.totalCost)}</td></tr>
+        <tr><td>年化成本率</td><td class="num">${(c.lc.costRate*100).toFixed(4)}%</td><td class="num">${(c.loan.costRate*100).toFixed(4)}%</td></tr>
+      </table>
+      <p style="text-align:center;margin-top:12px;font-weight:700;color:${c.difference<0?'#0f766e':'#b91c1c'}">${c.recommendation}（差额 ¥${fmt(Math.abs(c.difference))}）</p>
+    </div>
+  `;
+}
+
+// Auto-calc on load
+window.onload = () => calc();
+</script>
+</body>
+</html>
