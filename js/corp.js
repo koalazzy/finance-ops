@@ -89,7 +89,7 @@ const CORP_TABS = {
           <table>
             <tr><th>项目</th><th>金额</th><th>说明</th></tr>
             <tr><td>① 福费廷贴现利息</td><td class="num red">¥${fmt(d.forfeitingInterest)}</td>
-              <td>贴现利率 × 敞口 × 期限</td></tr>
+              <td>贴现利率 × 开证金额 × 期限</td></tr>
             <tr><td>② 开证手续费</td><td class="num red">¥${fmt(d.issuingFee)}</td><td>一次性收取</td></tr>
             <tr><td>③ 承兑费</td><td class="num red">¥${fmt(d.acceptanceFee)}</td><td>按月计收</td></tr>
             <tr class="base-row"><td>费用合计（①+②+③）</td><td class="num red">¥${fmt(c.lc.feeSubtotal)}</td><td></td></tr>

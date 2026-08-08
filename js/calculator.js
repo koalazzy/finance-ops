@@ -242,8 +242,8 @@ const FinanceOps = {
     const issuingFee = this.round2(amount * issuingFeeRate);
     const acceptanceFee = this.round2(amount * acceptanceFeeMonthly * months);
 
-    // 福费廷贴现利息（按融资敞口、期限计算）
-    const forfeitingInterest = this.round2(exposure * forfeitingRate * months / 12);
+    // 福费廷贴现利息（按信用证总金额、期限计算）
+    const forfeitingInterest = this.round2(amount * forfeitingRate * months / 12);
 
     // 保证金存款利息收入
     const marginDepositIncome = this.round2(margin * marginDepositRate * months / 12);
