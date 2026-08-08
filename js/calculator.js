@@ -280,7 +280,9 @@ const FinanceOps = {
     const loanCostRate = this.round4(loanInterest / amount * 12 / months);
 
     return {
-      lc: { totalCost: lc.totalCost, costRate: lc.costRate, detail: lc.detail, margin: lc.margin, exposure: lc.exposure },
+      lc: { totalCost: lc.totalCost, costRate: lc.costRate, detail: lc.detail, 
+             margin: lc.margin, marginRatio: lc.marginRatio, exposure: lc.exposure, months: lc.months,
+             feeSubtotal: lc.feeSubtotal },
       loan: { totalCost: loanInterest, costRate: loanCostRate },
       difference: this.round2(lc.totalCost - loanInterest),
       recommendation: lc.totalCost < loanInterest ? '国内信用证成本更低' : '流动资金贷款成本更低'
