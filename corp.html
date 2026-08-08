@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>对公业务 — FinanceOps</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <a href="index.html" class="back-link">← 返回首页</a>
+    <h1 class="logo">🏢 对公业务</h1>
+    <p class="subtitle">公司金融计算工具</p>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="acceptance">📄 银承贴现</button>
+    <button class="tab" data-tab="lc">📜 国内信用证</button>
+    <button class="tab" data-tab="structured">📊 结构性存款</button>
+    <button class="tab" data-tab="cd">🏦 大额存单</button>
+    <button class="tab" data-tab="notice">📋 通知存款</button>
+    <button class="tab" data-tab="agreement">🤝 协定存款</button>
+  </nav>
+
+  <main class="content" id="content"></main>
+
+  <footer class="footer">
+    <p>计算结果仅供参考，以银行实际报价为准 · <a href="https://github.com/koalazzy/finance-ops" target="_blank">GitHub</a></p>
+  </footer>
+</div>
+<script src="js/calculator.js"></script>
+<script src="js/corp.js"></script>
+</body>
+</html>

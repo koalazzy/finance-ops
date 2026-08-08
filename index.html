@@ -3,34 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>FinanceOps — 银行业务计算器</title>
-<link rel="stylesheet" href="css/style.css">
+<title>FinanceOps — 银行业务计算工具</title>
+<style>
+:root {
+  --primary: #1a3a5c;
+  --primary-light: #2d5f8a;
+  --accent: #c9a94e;
+  --bg: #f4f5f7;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --green: #0f766e;
+  --red: #b91c1c;
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --card-bg: #1a2332;
+    --text: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --border: #1e3a5f;
+    --primary: #2d5f8a;
+    --primary-light: #3b82f6;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+}
+.hero {
+  background: linear-gradient(135deg, #0f2027 0%, #1a3a5c 50%, #203a43 100%);
+  color: #fff; text-align: center; padding: 56px 20px 40px;
+}
+.hero h1 { font-size: 32px; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px; }
+.hero .sub { font-size: 14px; opacity: 0.7; font-weight: 400; margin-bottom: 12px; }
+.hero .badge { display: inline-block; background: rgba(201,169,78,0.2); color: var(--accent);
+  border: 1px solid rgba(201,169,78,0.3); border-radius: 4px; padding: 3px 12px; font-size: 12px; letter-spacing: 1px; }
+.divider-section { max-width: 860px; margin: 0 auto; padding: 20px; }
+.divider-section h2 { font-size: 13px; color: var(--text-secondary); text-transform: uppercase;
+  letter-spacing: 4px; margin: 28px 0 12px; padding-left: 4px; }
+.entrance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 600px) { .entrance-grid { grid-template-columns: 1fr; } }
+.entrance-card {
+  display: block; background: var(--card-bg); border-radius: var(--radius);
+  padding: 28px 24px; border: 1px solid var(--border); text-decoration: none;
+  color: var(--text); transition: all 0.2s; position: relative; overflow: hidden;
+}
+.entrance-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); border-color: var(--primary-light); }
+.entrance-card .badge-type { display: inline-block; padding: 3px 10px; border-radius: 3px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 14px; }
+.entrance-card .badge-type.corp { background: var(--primary); color: #fff; }
+.entrance-card .badge-type.personal { background: #0f766e; color: #fff; }
+.entrance-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.entrance-card .desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+.entrance-card .modules { display: flex; flex-wrap: wrap; gap: 6px; }
+.entrance-card .module-tag { font-size: 12px; padding: 4px 10px; border-radius: 4px;
+  background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+.entrance-card .arrow {
+  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+  font-size: 28px; color: var(--text-secondary); opacity: 0.3; transition: all 0.2s;
+}
+.entrance-card:hover .arrow { opacity: 0.6; transform: translateY(-50%) translateX(4px); }
+.footer { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 12px; }
+.footer a { color: var(--primary-light); text-decoration: none; }
+</style>
 </head>
 <body>
-<div class="app">
-  <header class="header">
-    <h1 class="logo">💹 FinanceOps</h1>
-    <p class="subtitle">银行业务成本计算器 · 客户经理随身工具</p>
-  </header>
 
-  <nav class="tabs" id="tabs">
-    <button class="tab active" data-tab="mortgage">🏠 按揭</button>
-    <button class="tab" data-tab="acceptance">📄 贴现</button>
-    <button class="tab" data-tab="lc">📜 信用证</button>
-    <button class="tab" data-tab="corp">🏢 对公理财</button>
-    <button class="tab" data-tab="personal">👤 对私理财</button>
-  </nav>
-
-  <main class="content" id="content">
-    <!-- Tab content rendered by JS -->
-  </main>
-
-  <footer class="footer">
-    <p>计算结果仅供参考，以银行实际报价为准 · <a href="https://github.com/guaguatuna/finance-ops" target="_blank">GitHub</a></p>
-  </footer>
+<div class="hero">
+  <h1>FinanceOps</h1>
+  <p class="sub">银行业务计算工具</p>
+  <span class="badge">客户经理随身工具</span>
 </div>
 
-<script src="js/calculator.js"></script>
-<script src="js/ui.js"></script>
+<div class="divider-section">
+  <h2>请选择业务类型</h2>
+  <div class="entrance-grid">
+    <a href="corp.html" class="entrance-card">
+      <span class="badge-type corp">对公业务</span>
+      <h3>🏢 公司金融</h3>
+      <p class="desc">银承贴现 · 国内信用证 · 结构性存款 · 大额存单 · 通知存款 · 协定存款</p>
+      <div class="modules">
+        <span class="module-tag">票据贴现</span>
+        <span class="module-tag">国内信用证</span>
+        <span class="module-tag">结构性存款</span>
+        <span class="module-tag">大额存单</span>
+        <span class="module-tag">协定存款</span>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+    <a href="personal.html" class="entrance-card">
+      <span class="badge-type personal">个人业务</span>
+      <h3>👤 个人金融</h3>
+      <p class="desc">按揭测算 · 定存 · 大额存单 · 货基 · 净值型理财 · 国债 · 收益凭证</p>
+      <div class="modules">
+        <span class="module-tag">按揭测算</span>
+        <span class="module-tag">定期存款</span>
+        <span class="module-tag">净值型理财</span>
+        <span class="module-tag">国债</span>
+        <span class="module-tag">收益凭证</span>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>计算结果仅供参考，以银行实际报价为准</p>
+  <p style="margin-top:6px"><a href="https://github.com/koalazzy/finance-ops" target="_blank">GitHub</a> · MIT License</p>
+</footer>
+
 </body>
 </html>
