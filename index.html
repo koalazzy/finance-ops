@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FinanceOps — 银行业务计算器</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <h1 class="logo">💹 FinanceOps</h1>
+    <p class="subtitle">银行业务成本计算器 · 客户经理随身工具</p>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="mortgage">🏠 按揭</button>
+    <button class="tab" data-tab="acceptance">📄 贴现</button>
+    <button class="tab" data-tab="lc">📜 信用证</button>
+    <button class="tab" data-tab="corp">🏢 对公理财</button>
+    <button class="tab" data-tab="personal">👤 对私理财</button>
+  </nav>
+
+  <main class="content" id="content">
+    <!-- Tab content rendered by JS -->
+  </main>
+
+  <footer class="footer">
+    <p>计算结果仅供参考，以银行实际报价为准 · <a href="https://github.com/guaguatuna/finance-ops" target="_blank">GitHub</a></p>
+  </footer>
+</div>
+
+<script src="js/calculator.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
