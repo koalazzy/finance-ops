@@ -107,7 +107,7 @@ const CORP_TABS = {
           <h3>信用证 vs 流动资金贷款</h3>
           <table>
             <tr><th></th><th>国内信用证</th><th>流动资金贷款</th></tr>
-            <tr><td>融资金额</td><td class="num">¥${fmt(c.lc.exposure)}（敞口）</td><td class="num">¥${fmt(c.lc.margin + c.lc.exposure)}（全额）</td></tr>
+            <tr><td>融资敞口（均刨除保证金）</td><td class="num">¥${fmt(c.lc.exposure)}</td><td class="num">¥${fmt(c.lc.exposure)}</td></tr>
             <tr><td>总成本</td><td class="num">¥${fmt(c.lc.totalCost)}</td><td class="num">¥${fmt(c.loan.totalCost)}</td></tr>
             <tr><td>年化成本率</td><td class="num">${(c.lc.costRate*100).toFixed(4)}%</td><td class="num">${(c.loan.costRate*100).toFixed(4)}%</td></tr>
             <tr class="total-row"><td>差额</td><td colspan="2" class="num ${c.difference < 0 ? 'green' : 'red'}">

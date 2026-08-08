@@ -275,9 +275,10 @@ const FinanceOps = {
    */
   lcVsLoanV2(amount, months, lcOpts = {}, loanAnnualRate = 0.035) {
     const lc = this.letterOfCreditV2(amount, months, lcOpts);
-    // 流动资金贷款：全额计息
-    const loanInterest = this.round2(amount * loanAnnualRate * months / 12);
-    const loanCostRate = this.round4(loanInterest / amount * 12 / months);
+    // 流动资金贷款：按敞口（实际用信金额）计息
+    // 保证金是企业自有资金，不需要向银行融资，所以流贷也只需覆盖敞口部分
+    const loanInterest = this.round2(lc.exposure * loanAnnualRate * months / 12);
+    const loanCostRate = this.round4(loanInterest / lc.exposure * 12 / months);
 
     return {
       lc: { totalCost: lc.totalCost, costRate: lc.costRate, detail: lc.detail, 
