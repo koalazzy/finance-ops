@@ -215,11 +215,83 @@ const FinanceOps = {
     };
   },
 
-  /** 信用证 vs 流动资金贷款对比 */
+  /**
+   * 国内信用证融资成本（含保证金+福费廷+存款利息抵扣）
+   * @param {number} amount 开证金额
+   * @param {number} months 期限（月）
+   * @param {object} opts
+   *   marginRatio: 保证金比例 (如 0.3 = 30%)
+   *   marginDepositRate: 保证金存款年利率
+   *   forfeitingRate: 福费廷贴现年利率
+   *   issuingFeeRate: 开证手续费率
+   *   acceptanceFeeMonthly: 承兑费月率
+   */
+  letterOfCreditV2(amount, months, opts = {}) {
+    const marginRatio = opts.marginRatio ?? 0.3;
+    const marginDepositRate = opts.marginDepositRate ?? 0.0035;
+    const forfeitingRate = opts.forfeitingRate ?? 0.025;
+    const issuingFeeRate = opts.issuingFeeRate ?? 0.001;
+    const acceptanceFeeMonthly = opts.acceptanceFeeMonthly ?? 0.0006;
+
+    // 保证金
+    const margin = this.round2(amount * marginRatio);
+    // 融资敞口 = 开证金额 - 保证金
+    const exposure = this.round2(amount - margin);
+
+    // 收费项
+    const issuingFee = this.round2(amount * issuingFeeRate);
+    const acceptanceFee = this.round2(amount * acceptanceFeeMonthly * months);
+
+    // 福费廷贴现利息（按融资敞口、期限计算）
+    const forfeitingInterest = this.round2(exposure * forfeitingRate * months / 12);
+
+    // 保证金存款利息收入
+    const marginDepositIncome = this.round2(margin * marginDepositRate * months / 12);
+
+    // 总成本 = 利息支出 + 开证费 + 承兑费 - 保证金存款利息收入
+    const totalCost = this.round2(forfeitingInterest + issuingFee + acceptanceFee - marginDepositIncome);
+    // 融资成本率 = 总成本 / 融资敞口 × 12 / 月数
+    const costRate = this.round4(totalCost / exposure * 12 / months);
+
+    return {
+      amount, months,
+      margin, marginRatio, marginDepositRate,
+      exposure,
+      detail: {
+        forfeitingInterest,
+        issuingFee,
+        acceptanceFee,
+        marginDepositIncome
+      },
+      feeSubtotal: this.round2(forfeitingInterest + issuingFee + acceptanceFee),
+      marginIncome: this.round2(-marginDepositIncome),
+      totalCost,
+      costRate
+    };
+  },
+
+  /**
+   * 信用证 vs 流动资金贷款（V2，含保证金模型）
+   */
+  lcVsLoanV2(amount, months, lcOpts = {}, loanAnnualRate = 0.035) {
+    const lc = this.letterOfCreditV2(amount, months, lcOpts);
+    // 流动资金贷款：全额计息
+    const loanInterest = this.round2(amount * loanAnnualRate * months / 12);
+    const loanCostRate = this.round4(loanInterest / amount * 12 / months);
+
+    return {
+      lc: { totalCost: lc.totalCost, costRate: lc.costRate, detail: lc.detail, margin: lc.margin, exposure: lc.exposure },
+      loan: { totalCost: loanInterest, costRate: loanCostRate },
+      difference: this.round2(lc.totalCost - loanInterest),
+      recommendation: lc.totalCost < loanInterest ? '国内信用证成本更低' : '流动资金贷款成本更低'
+    };
+  },
+
+  /** 信用证 vs 流动资金贷款对比 (V1 兼容) */
   lcVsLoan(amount, months, lcFees = {}, loanAnnualRate = 0.035) {
     const lc = this.letterOfCredit(amount, months, lcFees);
     const loanInterest = this.round2(amount * loanAnnualRate * months / 12);
-    const loanTotal = loanInterest; // 假设无其他费用
+    const loanTotal = loanInterest;
 
     return {
       lc: { totalCost: lc.total, costRate: lc.totalRate, detail: lc.breakdown },

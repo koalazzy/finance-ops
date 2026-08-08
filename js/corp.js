@@ -51,48 +51,67 @@ const CORP_TABS = {
 
   lc: {
     title: '国内信用证',
-    desc: '全流程费用拆解 · 综合成本率 · vs 流动资金贷款',
+    desc: '保证金 · 福费廷贴现 · 存款利息抵扣 · 融资成本率',
     form: [
-      { id: 'l_amount', label: '信用证金额（万元）', type: 'number', default: 500 },
-      { id: 'l_months', label: '期限（月）', type: 'number', default: 6 },
-      { id: 'l_loan', label: '流贷对比年利率 %', type: 'number', default: 3.5, step: 0.01 },
-      { id: 'l_issuing', label: '开证费率 %', type: 'number', default: 0.1, step: 0.01 },
-      { id: 'l_nego', label: '议付费率 %', type: 'number', default: 0.2, step: 0.01 },
-      { id: 'l_accept', label: '承兑费月率 %', type: 'number', default: 0.06, step: 0.01 }
+      { id: 'l_amount', label: '开证金额（万元）', type: 'number', default: 500 },
+      { id: 'l_months', label: '开证期限（月）', type: 'number', default: 6 },
+      { id: 'l_margin', label: '保证金比例 %', type: 'number', default: 30, step: 1 },
+      { id: 'l_forfeit', label: '福费廷贴现利率 %（年化）', type: 'number', default: 2.5, step: 0.01 },
+      { id: 'l_issuing', label: '开证手续费率 %', type: 'number', default: 0.1, step: 0.01 },
+      { id: 'l_accept', label: '承兑费月率 %', type: 'number', default: 0.06, step: 0.01 },
+      { id: 'l_deposit', label: '保证金存款年利率 %', type: 'number', default: 0.35, step: 0.01 },
+      { id: 'l_loan', label: '流贷对比年利率 %', type: 'number', default: 3.5, step: 0.01 }
     ],
     calc(p) {
       const amount = p.l_amount * 10000;
-      const fees = {
+      const opts = {
+        marginRatio: p.l_margin / 100,
+        marginDepositRate: p.l_deposit / 100,
+        forfeitingRate: p.l_forfeit / 100,
         issuingFeeRate: p.l_issuing / 100,
-        negotiationFeeRate: p.l_nego / 100,
         acceptanceFeeMonthly: p.l_accept / 100
       };
-      return F.lcVsLoan(amount, p.l_months, fees, p.l_loan / 100);
+      return F.lcVsLoanV2(amount, p.l_months, opts, p.l_loan / 100);
     },
     render(c) {
       const d = c.lc.detail;
       return `
         <div class="card result">
-          <h3>信用证费用明细</h3>
+          <h3>融资结构</h3>
           <table>
-            <tr><td>开证费</td><td class="num">¥${fmt(d.issuingFee)}</td></tr>
-            <tr><td>通知费</td><td class="num">¥${fmt(d.advisingFee)}</td></tr>
-            <tr><td>议付费</td><td class="num">¥${fmt(d.negotiationFee)}</td></tr>
-            <tr><td>承兑费</td><td class="num">¥${fmt(d.acceptanceFee)}</td></tr>
-            <tr><td>不符点费</td><td class="num">¥${fmt(d.discrepancyFee)}</td></tr>
-            <tr><td>付款费</td><td class="num">¥${fmt(d.paymentFee)}</td></tr>
-            <tr><td>电讯费</td><td class="num">¥${fmt(d.cableFee)}</td></tr>
-            <tr class="total-row"><td>费用合计</td><td class="num">¥${fmt(c.lc.totalCost)}</td></tr>
-            <tr><td>综合成本率</td><td class="num">${(c.lc.costRate*100).toFixed(4)}%</td></tr>
+            <tr><td>开证金额</td><td class="num">¥${fmt(c.lc.margin + c.lc.exposure)}</td></tr>
+            <tr><td>保证金</td><td class="num">¥${fmt(c.lc.margin)}</td></tr>
+            <tr><td>融资敞口（开证金额 - 保证金）</td><td class="num bold">¥${fmt(c.lc.exposure)}</td></tr>
+          </table>
+        </div>
+        <div class="card result">
+          <h3>成本明细</h3>
+          <table>
+            <tr><th>项目</th><th>金额</th><th>说明</th></tr>
+            <tr><td>① 福费廷贴现利息</td><td class="num red">¥${fmt(d.forfeitingInterest)}</td>
+              <td>贴现利率 × 敞口 × 期限</td></tr>
+            <tr><td>② 开证手续费</td><td class="num red">¥${fmt(d.issuingFee)}</td><td>一次性收取</td></tr>
+            <tr><td>③ 承兑费</td><td class="num red">¥${fmt(d.acceptanceFee)}</td><td>按月计收</td></tr>
+            <tr class="base-row"><td>费用合计（①+②+③）</td><td class="num red">¥${fmt(c.lc.feeSubtotal)}</td><td></td></tr>
+            <tr><td>④ 保证金存款利息</td><td class="num green">−¥${fmt(d.marginDepositIncome)}</td><td>利息收入，抵减成本</td></tr>
+            <tr class="total-row"><td>融资总成本</td><td class="num bold">¥${fmt(c.lc.totalCost)}</td><td>= ①+②+③−④</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>关键指标</h3>
+          <table>
+            <tr><td>融资成本率（年化）</td><td class="num bold" style="font-size:18px;color:var(--accent)">${(c.lc.costRate*100).toFixed(4)}%</td><td>总成本 ÷ 敞口 ÷ ${c.lc.months||6} × 12</td></tr>
           </table>
         </div>
         <div class="card">
           <h3>信用证 vs 流动资金贷款</h3>
           <table>
             <tr><th></th><th>国内信用证</th><th>流动资金贷款</th></tr>
+            <tr><td>融资金额</td><td class="num">¥${fmt(c.lc.exposure)}（敞口）</td><td class="num">¥${fmt(c.lc.margin + c.lc.exposure)}（全额）</td></tr>
             <tr><td>总成本</td><td class="num">¥${fmt(c.lc.totalCost)}</td><td class="num">¥${fmt(c.loan.totalCost)}</td></tr>
-            <tr><td>成本率</td><td class="num">${(c.lc.costRate*100).toFixed(4)}%</td><td class="num">${(c.loan.costRate*100).toFixed(4)}%</td></tr>
-            <tr><td>结论</td><td colspan="2" class="num ${c.difference < 0 ? 'green' : 'red'}">${c.recommendation}</td></tr>
+            <tr><td>年化成本率</td><td class="num">${(c.lc.costRate*100).toFixed(4)}%</td><td class="num">${(c.loan.costRate*100).toFixed(4)}%</td></tr>
+            <tr class="total-row"><td>差额</td><td colspan="2" class="num ${c.difference < 0 ? 'green' : 'red'}">
+              ${c.recommendation}（¥${fmt(Math.abs(c.difference))}）</td></tr>
           </table>
         </div>
       `;
